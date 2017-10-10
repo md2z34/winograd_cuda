@@ -24,18 +24,15 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="trans_F_2x2_3x3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cpu.cpp">
+    <ClCompile Include="Tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="trans_F_2x2_3x3.cpp">
+    <ClCompile Include="trans_F_2x2_3x3_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
