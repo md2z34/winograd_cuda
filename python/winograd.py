@@ -468,7 +468,16 @@ k=0
 #         Ft[i][j] = k;
 #         k+=1;
 minimal = 1
-trans_F_2x2_3x3(Fwt, Ft, minimal=False)
+trans_F_2x2_3x3(Fwt, Ft, minimal)
+It = np.ones((4,4));
+Iwt = np.empty((4,4));
+k=0
+for i in range(0,4):
+    for j in range(0,4):
+        It[i][j] = k;
+        k+=1;
+trans_I_2x2_3x3(Iwt, It, minimal)
+
 ones = 0
 N    = 32
 C, K = 32, 32
