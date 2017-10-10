@@ -2,6 +2,7 @@
 #include "CppUTest/TestHarness.h"
 #include "../cpu/trans_F_2x2_3x3.h"
 #include "../cpu/trans_I_2x2_3x3.h"
+#include "../cpu/trans_O_2x2_3x3.h"
 
 TEST_GROUP(CPU_code)
 {
@@ -31,7 +32,7 @@ TEST(CPU_code, trans_F_2x2_3x3_test)
 	float in1[3][3]; int k = 0;
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; ++j) {
-			in1[i][j] = (k++);
+			in1[i][j] = (float)(k++);
 		}
 	}
 	float in2[3][3];
@@ -75,7 +76,7 @@ TEST(CPU_code, trans_I_2x2_3x3_test)
 	float in1[4][4]; int k = 0;
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; ++j) {
-			in1[i][j] = (k++);
+			in1[i][j] = (float)(k++);
 		}
 	}
 	float in2[4][4];
@@ -93,6 +94,46 @@ TEST(CPU_code, trans_I_2x2_3x3_test)
 	float norm2 = 0.;
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; ++j) {
+			norm1 += (out1[i][j] - out_012[i][j])*(out1[i][j] - out_012[i][j]);
+			norm2 += (out2[i][j] - out_111[i][j])*(out2[i][j] - out_111[i][j]);
+		}
+	}
+
+	CHECK(norm1 < 1e-10);
+	CHECK(norm2 < 1e-10);
+}
+
+TEST(CPU_code, trans_O_2x2_3x3_test)
+{
+	// Outputs for reference
+	float out_012[2][2];
+	out_012[0][0] = 45; out_012[0][1] = -24; 
+	out_012[1][0] = -51; out_012[1][1] = 20; 
+	float out_111[2][2];
+	out_111[0][0] = 9; out_111[0][1] = -3;
+	out_111[1][0] = -3; out_111[1][1] = 1;
+
+	float in1[4][4]; int k = 0;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; ++j) {
+			in1[i][j] = (float)(k++);
+		}
+	}
+	float in2[4][4];
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; ++j) {
+			in2[i][j] = 1.;
+		}
+	}
+	float out1[2][2];
+	trans_O_2x2_3x3(out1,in1);
+	float out2[2][2];
+	trans_O_2x2_3x3(out2,in2);
+
+	float norm1 = 0.;
+	float norm2 = 0.;
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 2; ++j) {
 			norm1 += (out1[i][j] - out_012[i][j])*(out1[i][j] - out_012[i][j]);
 			norm2 += (out2[i][j] - out_111[i][j])*(out2[i][j] - out_111[i][j]);
 		}

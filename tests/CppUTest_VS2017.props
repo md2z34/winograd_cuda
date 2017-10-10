@@ -15,7 +15,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(CPPUTEST_LIB_PATHS);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CPPUTEST_LIB_DEPENDENCIES);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CppUTest.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Message>$(TargetPath)</Message>

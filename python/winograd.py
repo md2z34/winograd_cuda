@@ -478,6 +478,15 @@ for i in range(0,4):
         k+=1;
 trans_I_2x2_3x3(Iwt, It, minimal)
 
+Mwt = np.ones((4,4));
+Mt = np.empty((2,2));
+k=0
+# for i in range(0,4):
+#     for j in range(0,4):
+#         Mwt[i][j] = k;
+#         k+=1;
+Mt=trans_O_2x2_3x3(Mwt, minimal)
+
 ones = 0
 N    = 32
 C, K = 32, 32
