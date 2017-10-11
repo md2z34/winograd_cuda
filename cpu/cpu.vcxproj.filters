@@ -33,6 +33,15 @@
     <ClInclude Include="trans_O_2x2_3x3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="image_slice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ceil_div.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xprop_winograd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -48,6 +57,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="trans_O_2x2_3x3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="image_slice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ceil_div.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="xprop_winograd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -3,6 +3,9 @@
 #include "../cpu/trans_F_2x2_3x3.h"
 #include "../cpu/trans_I_2x2_3x3.h"
 #include "../cpu/trans_O_2x2_3x3.h"
+#include "../cpu/image_slice.h"
+#include "../cpu/ceil_div.h"
+#include <stdio.h>
 
 TEST_GROUP(CPU_code)
 {
@@ -17,6 +20,7 @@ TEST_GROUP(CPU_code)
 
 TEST(CPU_code, trans_F_2x2_3x3_test)
 {
+	printf("trans_F_2x2_3x3_test...");
 	// Outputs for reference
 	float out_012[4][4];
 	out_012[0][0] = 0; out_012[0][1] = 1.5; out_012[0][2] = 0.5; out_012[0][3] = 2;
@@ -57,10 +61,12 @@ TEST(CPU_code, trans_F_2x2_3x3_test)
 
 	CHECK(norm1 < 1e-10);
 	CHECK(norm2 < 1e-10);
+	printf(" [PASSED]\n");
 }
 
 TEST(CPU_code, trans_I_2x2_3x3_test)
 {
+	printf("trans_I_2x2_3x3_test...");
 	// Outputs for reference
 	float out_012[4][4];
 	out_012[0][0] = 0; out_012[0][1] = -16; out_012[0][2] = 0; out_012[0][3] = 0;
@@ -101,10 +107,12 @@ TEST(CPU_code, trans_I_2x2_3x3_test)
 
 	CHECK(norm1 < 1e-10);
 	CHECK(norm2 < 1e-10);
+	printf(" [PASSED]\n");
 }
 
 TEST(CPU_code, trans_O_2x2_3x3_test)
 {
+	printf("trans_O_2x2_3x3_test...");
 	// Outputs for reference
 	float out_012[2][2];
 	out_012[0][0] = 45; out_012[0][1] = -24; 
@@ -141,4 +149,36 @@ TEST(CPU_code, trans_O_2x2_3x3_test)
 
 	CHECK(norm1 < 1e-10);
 	CHECK(norm2 < 1e-10);
+	printf(" [PASSED]\n");
+}
+
+TEST(CPU_code, image_slice_test)
+{
+	printf("image_slice_test...");
+	int start, stop;
+	int pad[2];
+
+	image_slice(0, 4, 2, 4, 1, &start, &stop, pad);
+
+	LONGS_EQUAL(start, 0);
+	LONGS_EQUAL(stop,3);
+	LONGS_EQUAL(pad[0], 1);
+	LONGS_EQUAL(pad[1], 0);
+	printf(" [PASSED]\n");
+}
+
+TEST(CPU_code, ceil_div)
+{
+	printf("ceil_div...");
+	LONGS_EQUAL(1,ceil_div(4, 4));
+	LONGS_EQUAL(2,ceil_div(4, 3));
+	LONGS_EQUAL(2,ceil_div(4, 2));
+	LONGS_EQUAL(1,ceil_div(4, 5));
+	LONGS_EQUAL(1,ceil_div(4, 16));
+	//LONGS_EQUAL(-4,ceil_div(-4, 1));
+	//LONGS_EQUAL(-2,ceil_div(-4, 2));
+	//LONGS_EQUAL(-1,ceil_div(-4, 3));
+	//LONGS_EQUAL(-1,ceil_div(-4, 4));
+	//LONGS_EQUAL(0,ceil_div(-4, 5));
+	printf(" [PASSED]\n");
 }

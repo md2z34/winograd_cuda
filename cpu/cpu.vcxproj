@@ -146,14 +146,19 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ceil_div.h" />
+    <ClInclude Include="image_slice.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="trans_F_2x2_3x3.h" />
     <ClInclude Include="trans_I_2x2_3x3.h" />
     <ClInclude Include="trans_O_2x2_3x3.h" />
+    <ClInclude Include="xprop_winograd.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ceil_div.cpp" />
     <ClCompile Include="cpu.cpp" />
+    <ClCompile Include="image_slice.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -163,6 +168,7 @@
     <ClCompile Include="trans_F_2x2_3x3.cpp" />
     <ClCompile Include="trans_I_2x2_3x3.cpp" />
     <ClCompile Include="trans_O_2x2_3x3.cpp" />
+    <ClCompile Include="xprop_winograd.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
