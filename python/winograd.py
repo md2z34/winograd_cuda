@@ -487,7 +487,7 @@ k=0
 #         k+=1;
 Mt=trans_O_2x2_3x3(Mwt, minimal)
 
-ones = 0
+ones = 1
 N    = 32
 C, K = 32, 32
 Y, X = 4, 4
@@ -521,6 +521,8 @@ else:
     #F  = np.random.uniform(-1.0, 1.0, dimF)
     E  = np.random.uniform(-1.0, 1.0, dimO)
 
+
+
 Od = np.empty(dimO)
 Ow = np.empty(dimO) #, dtype=np.float32
 
@@ -533,6 +535,19 @@ Uw = np.empty(dimF)
 
 xprop_direct(I, F, Od, padding, strides)
 xprop_winograd(I, F, Ow, padding, minimal=minimal)
+
+file = open('Ow.txt','w')
+for a in range(dimO[0]):
+    for b in range(dimO[1]):
+        for c in range(dimO[2]):
+            for d in range(dimO[3]):
+                file.write('{};'.format(Ow[a][b][c][d]))
+        file.write('\n')
+    file.write('\n')
+file.write('\n')
+
+
+file.close()
 
 xprop_direct(E, F, Bd, padding, strides, backward=True)
 xprop_winograd(E, F, Bw, padding, minimal=minimal, backward=True)
