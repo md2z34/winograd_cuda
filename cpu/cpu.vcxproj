@@ -155,6 +155,7 @@
     <ClInclude Include="trans_F_2x2_3x3.h" />
     <ClInclude Include="trans_I_2x2_3x3.h" />
     <ClInclude Include="trans_O_2x2_3x3.h" />
+    <ClInclude Include="winograd_debug.h" />
     <ClInclude Include="xprop_winograd.h" />
   </ItemGroup>
   <ItemGroup>

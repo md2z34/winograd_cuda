@@ -370,13 +370,17 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
             file.close()
 
             # Apply the Image transform
+            file2 = open('sliceI_mat_ref.txt', 'w')
             for c in range(C):
                 for n in range(N):
                     print "c={},n={}".format(c,n)
                     print "slideI = {}".format(sliceI[c,:,:,n])
+
+                    file2.write("sliceI (c={};n={}):\n".format(c,n))
+                    file2.write("{}\n".format(sliceI[c,:,:,n]))
                     trans_I_2x2_3x3(Iw[:,:,c,y,x,n], sliceI[c,:,:,n], minimal)
                     print "Iw = {}".format(Iw[:,:,c,y,x,n])
-
+            file2.close()
     file = open('Iw.txt', 'w')
     for a in range(D):
         for b in range(D):

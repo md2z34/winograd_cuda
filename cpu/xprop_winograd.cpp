@@ -1,12 +1,15 @@
 #include "stdafx.h"
+#include "winograd_debug.h"
 #include "xprop_winograd.h"
 #include "ceil_div.h"
 #include "trans_F_2x2_3x3.h"
 #include "trans_I_2x2_3x3.h"
 #include "trans_O_2x2_3x3.h"
 #include "image_slice.h"
+#ifdef DEBUG
 #include <fstream>
 #include <iostream>
+#endif // DEBUG
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -34,9 +37,11 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 	float sliceI[C][Y][X][N];
 	memset(O, 0, sizeof(float) * 32 * 4 * 4 * 32);
 	// Transform Filters
+#ifdef DEBUG
 	std::ofstream Fw_file;
 	std::ofstream Iw_file;
 	std::ofstream slice_file;
+#endif // DEBUG
 	for (int c = 0; c < C; ++c) {
 		for (int k = 0; k < K; ++k) {
 			// F[c, :, : , k] -> tmp3x3
@@ -54,6 +59,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 			}
 		}
 	}
+#ifdef DEBUG
 	Fw_file.open("Fw_cpu.txt");
 	for (int a = 0; a < 4; ++a) {
 		for (int b = 0; b < 4; ++b) {
@@ -65,11 +71,10 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 		}
 	}
 	Fw_file.close();
-
+#endif // DEBUG
 	// Iterate over image transform dimensions and slice out tiles of the image
 	float in[4][4];
 	float out[4][4];
-	memset(sliceI, 0, sizeof(float)*C*Y*X*N);
 	for (int y = 0; y < Yw; ++y) {
 		int start_y, stop_y, pad_y[2];
 		image_slice(y, Y, B, D, padding[0], &start_y, &stop_y, pad_y);
@@ -77,6 +82,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 			int start_x, stop_x, pad_x[2];
 			image_slice(x, X, B, D, padding[1], &start_x, &stop_x, pad_x);
 			// sliceI = I[:, start_y:stop_y, start_x:stop_x, :]
+			memset(sliceI, 0, sizeof(float)*C*Y*X*N);
 			for (int c = 0; c < C; ++c) {
 				for (int n = 0; n < N; ++n) {
 					for (int yy = start_y; yy < MIN(stop_y, Y); ++yy) {
@@ -100,6 +106,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 					}
 				}
 			}
+#ifdef DEBUG
 			slice_file.open("sliceI_cpu.txt");
 			for (int a = 0; a < C; ++a) {
 				for (int b = 0; b < Y; ++b) {
@@ -112,40 +119,60 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 			}
 			slice_file.close();
 
+			slice_file.open("sliceI_mat.txt");
+#endif // DEBUG
 			// Apply the Image transform
 			for (int c = 0; c < C; ++c) {
 				for (int n = 0; n < N; ++n) {
 					// in = sliceI[c,:,:,n]
-					//std::cout << "sliceI (c="<<c<<";n="<<n<<"):"<<std::endl;
+#ifdef DEBUG
+					slice_file << "sliceI (c="<<c<<";n="<<n<<"):"<<std::endl;
+#endif // DEBUG
 					for (int yy = 0; yy < Y; ++yy) {
 						for (int xx = 0; xx < X; ++xx) {
 							in[yy][xx] = sliceI[c][yy][xx][n];
-						//	std::cout << in[yy][xx] << "; ";
+#ifdef DEBUG
+							slice_file << in[yy][xx] << "; ";
+#endif // DEBUG
 						}
-					//	std::cout << std::endl;
+#ifdef DEBUG
+						slice_file << std::endl;
+#endif // DEBUG
 					}
-					//std::cout << std::endl;
+#ifdef DEBUG
+					slice_file << std::endl;
+#endif // DEBUG
 					trans_I_2x2_3x3(out, in);
 					// Iw[:,:,c,y,x,n] = out
-					//std::cout << "Iw:" << std::endl;
+					// std::cout << "Iw:" << std::endl;
 					for (int dx = 0; dx < D; ++dx) {
 						for (int dy = 0; dy < D; ++dy) {
 							Iw[dx][dy][c][y][x][n] = out[dx][dy];
-						//	std::cout << out[dx][dy] << ";";
+#ifdef DEBUG
+							//	std::cout << out[dx][dy] << ";";
+#endif // DEBUG
 						}
-					//	std::cout << std::endl;
+#ifdef DEBUG
+						//	std::cout << std::endl;
+#endif // DEBUG
 					}
-				//	std::cout << std::endl;
+#ifdef DEBUG
+					//	std::cout << std::endl;
+#endif // DEBUG
 				} // for n
 			} // for c
+#ifdef DEBUG
+			slice_file.close();
+#endif // DEBUG
 		} // for x
 	} // for y
+#ifdef DEBUG
 	Iw_file.open("Iw_cpu.txt");
 	for (int a = 0; a < D; ++a) {
 		for (int b = 0; b < D; ++b) {
 			for (int c = 0; c < C; ++c) {
-				for (int d = 0; d < Y; ++d) {
-					for (int e = 0; e < X; ++e) {
+				for (int d = 0; d < Yw; ++d) {
+					for (int e = 0; e < Xw; ++e) {
 						for (int f = 0; f < N; ++f) {
 							Iw_file << Iw[a][b][c][d][e][f] << ";";
 						}
@@ -155,6 +182,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 		}
 	}
 	Iw_file.close();
+#endif // DEBUG
 
 	// Batched gemm for the pointwise multiplication step
 	

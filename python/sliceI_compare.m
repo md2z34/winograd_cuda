@@ -15,3 +15,5 @@ for a=1:32,
      end
   end
 end
+max(sliceI-sliceI_cpu)
+min(sliceI-sliceI_cpu)

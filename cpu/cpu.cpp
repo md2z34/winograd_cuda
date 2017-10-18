@@ -2,8 +2,11 @@
 //
 
 #include "stdafx.h"
+#include "winograd_debug.h"
 #include <iostream>
+#ifdef DEBUG
 #include <fstream>
+#endif // DEBUG
 #include <vector>
 #include "trans_F_2x2_3x3.h"
 #include "trans_I_2x2_3x3.h"
@@ -30,8 +33,10 @@ int main()
 	float F[32][3][3][32];
 	float Ow[32][4][4][32];
 	int padding[2];
+#ifdef DEBUG
 	ofstream Ow_file;
 	ofstream F_file;
+#endif // DEBUG
 	// Init input values
 	padding[0] = 1; padding[1] = 1;
 	for (int a = 0; a < 32; ++a) {
@@ -52,6 +57,7 @@ int main()
 			}
 		}
 	}
+#ifdef DEBUG
 	F_file.open("F_cpu.txt");
 	for (int a = 0; a < 32; ++a) {
 		for (int b = 0; b < 3; ++b) {
@@ -63,8 +69,10 @@ int main()
 		}
 	}
 	F_file.close();
+#endif // DEBUG
 	xprop_winograd(I, F, Ow, padding);
 
+#ifdef DEBUG
 	Ow_file.open("Ow_cpu.txt");
 	for (int a = 0; a < 32; ++a) {
 		for (int b = 0; b < 4; ++b) {
@@ -76,6 +84,7 @@ int main()
 		}
 	}
 	Ow_file.close();
+#endif // DEBUG
 	return 0;
 }
 
