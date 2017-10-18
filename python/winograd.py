@@ -338,13 +338,22 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
         for k in range(K):
             trans_F_2x2_3x3(Fw[:,:,c,k], F[c,:,:,k], minimal)
 
+    file = open('Fw.txt', 'w')
+    for a in range(D):
+        for b in range(D):
+            for c in range(C):
+                for d in range(K):
+                    file.write('{};'.format(Fw[a][b][c][d]))
+            file.write('\n')
+        file.write('\n')
+    file.write('\n')
     # Iterate over image transform dimensions and slice out tiles of the image
     for y in range(Yw):
         start_y, stop_y, pad_y = image_slice(y, Y, B, D, padding[0])
 
         for x in range(Xw):
             start_x, stop_x, pad_x = image_slice(x, X, B, D, padding[1])
-
+            # Sometimes stop_y > 4 !!!
             sliceI = I[:, start_y:stop_y, start_x:stop_x, :]
 
             # add any zero padding if needed
@@ -355,6 +364,20 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
             for c in range(C):
                 for n in range(N):
                     trans_I_2x2_3x3(Iw[:,:,c,y,x,n], sliceI[c,:,:,n], minimal)
+
+    file = open('Iw.txt', 'w')
+    for a in range(D):
+        for b in range(D):
+            for c in range(C):
+                for d in range(Yw):
+                    for e in range(Xw):
+                        for f in range(N):
+                            file.write('{};'.format(Iw[a][b][c][d][e][f]))
+                    file.write('\n')
+                file.write('\n')
+            file.write('\n')
+        file.write('\n')
+    file.write('\n')
 
     # Fw, scaleF = quantize(Fw, 8)
     # Iw, scaleI = quantize(Iw, 8)
@@ -532,7 +555,6 @@ Bw = np.empty(dimI) #, dtype=np.float32
 Ud = np.empty(dimF)
 Uw = np.empty(dimF)
 
-
 xprop_direct(I, F, Od, padding, strides)
 xprop_winograd(I, F, Ow, padding, minimal=minimal)
 
@@ -545,6 +567,7 @@ for a in range(dimO[0]):
         file.write('\n')
     file.write('\n')
 file.write('\n')
+
 
 
 file.close()
