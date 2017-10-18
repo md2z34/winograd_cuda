@@ -31,7 +31,6 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 	float tmp2x2[2][2];
 
 	float sliceI[C][Y][X][N];
-	memset(sliceI, 0, sizeof(float)*C*Y*X*N);
 	memset(O, 0, sizeof(float) * 32 * 4 * 4 * 32);
 	// Transform Filters
 	std::ofstream Fw_file;
@@ -71,6 +70,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 	// Iterate over image transform dimensions and slice out tiles of the image
 	float in[4][4];
 	float out[4][4];
+	memset(sliceI, 0, sizeof(float)*C*Y*X*N);
 	for (int y = 0; y < Yw; ++y) {
 		int start_y, stop_y, pad_y[2];
 		image_slice(y, Y, B, D, padding[0], &start_y, &stop_y, pad_y);
@@ -79,10 +79,24 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 			image_slice(x, X, B, D, padding[1], &start_x, &stop_x, pad_x);
 			// sliceI = I[:, start_y:stop_y, start_x:stop_x, :]
 			for (int c = 0; c < C; ++c) {
-				for (int yy = start_y; yy < MIN(stop_y,4); ++yy) {
-					for (int xx = start_x; xx < MIN(stop_x,4); ++xx) {
+				for (int yy = start_y; yy < MIN(stop_y,Y); ++yy) {
+					for (int xx = start_x; xx < MIN(stop_x,X); ++xx) {
 						for (int n = 0; n < N; ++n) {
-							sliceI[c][yy][xx][n] = I[c][yy][xx][n];
+							if ((pad_x[0] > 0) && (pad_y[0] > 0)) {
+								sliceI[c][yy + pad_y[0]][xx + pad_x[0]][n] = I[c][yy][xx][n];
+							}
+							else if ((pad_x[1] > 0) && (pad_y[0] > 0)) {
+								sliceI[c][yy + pad_y[0]][xx - pad_x[1]][n] = I[c][yy][xx][n];
+							}
+							else if ((pad_x[0] > 0) && (pad_y[1] > 0)) {
+								sliceI[c][yy - pad_y[1]][xx + pad_x[0]][n] = I[c][yy][xx][n];
+							}
+							else if ((pad_x[1] > 0) && (pad_y[1] > 0)) {
+								sliceI[c][yy - pad_y[1]][xx - pad_x[1]][n] = I[c][yy][xx][n];
+							}
+							else {
+								sliceI[c][yy][xx][n] = I[c][yy][xx][n];
+							}
 						}
 					}
 				}
@@ -111,8 +125,8 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 	for (int a = 0; a < D; ++a) {
 		for (int b = 0; b < D; ++b) {
 			for (int c = 0; c < C; ++c) {
-				for (int d = 0; d < Yw; ++d) {
-					for (int e = 0; e < Xw; ++e) {
+				for (int d = 0; d < Y; ++d) {
+					for (int e = 0; e < X; ++e) {
 						for (int f = 0; f < N; ++f) {
 							Iw_file << Iw[a][b][c][d][e][f] << ";";
 						}

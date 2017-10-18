@@ -357,6 +357,8 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
             sliceI = I[:, start_y:stop_y, start_x:stop_x, :]
 
             # add any zero padding if needed
+            print "pad_x={}, start_x={}, stop_x={}".format(pad_x,start_x,stop_x)
+            print "pad_y={}, start_y={}, stop_y={}".format(pad_y,start_y,stop_y)
             if any(pad_y) or any(pad_x):
                 sliceI = np.pad(sliceI, ((0,0), pad_y, pad_x, (0,0)), 'constant')
 
@@ -373,7 +375,6 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
                     for e in range(Xw):
                         for f in range(N):
                             file.write('{};'.format(Iw[a][b][c][d][e][f]))
-                    file.write('\n')
                 file.write('\n')
             file.write('\n')
         file.write('\n')
