@@ -344,9 +344,8 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
             for c in range(C):
                 for d in range(K):
                     file.write('{};'.format(Fw[a][b][c][d]))
-            file.write('\n')
-        file.write('\n')
-    file.write('\n')
+    file.close()
+
     # Iterate over image transform dimensions and slice out tiles of the image
     for y in range(Yw):
         start_y, stop_y, pad_y = image_slice(y, Y, B, D, padding[0])
@@ -362,10 +361,21 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
             if any(pad_y) or any(pad_x):
                 sliceI = np.pad(sliceI, ((0,0), pad_y, pad_x, (0,0)), 'constant')
 
+            file = open('sliceI.txt', 'w')
+            for a in range(C):
+                for b in range(Y):
+                    for c in range(X):
+                        for d in range(N):
+                            file.write('{};'.format(sliceI[a][b][c][d]))
+            file.close()
+
             # Apply the Image transform
             for c in range(C):
                 for n in range(N):
+                    print "c={},n={}".format(c,n)
+                    print "slideI = {}".format(sliceI[c,:,:,n])
                     trans_I_2x2_3x3(Iw[:,:,c,y,x,n], sliceI[c,:,:,n], minimal)
+                    print "Iw = {}".format(Iw[:,:,c,y,x,n])
 
     file = open('Iw.txt', 'w')
     for a in range(D):
@@ -375,10 +385,7 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
                     for e in range(Xw):
                         for f in range(N):
                             file.write('{};'.format(Iw[a][b][c][d][e][f]))
-                file.write('\n')
-            file.write('\n')
-        file.write('\n')
-    file.write('\n')
+    file.close()
 
     # Fw, scaleF = quantize(Fw, 8)
     # Iw, scaleI = quantize(Iw, 8)
@@ -565,12 +572,6 @@ for a in range(dimO[0]):
         for c in range(dimO[2]):
             for d in range(dimO[3]):
                 file.write('{};'.format(Ow[a][b][c][d]))
-        file.write('\n')
-    file.write('\n')
-file.write('\n')
-
-
-
 file.close()
 
 xprop_direct(E, F, Bd, padding, strides, backward=True)

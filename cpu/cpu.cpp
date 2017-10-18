@@ -59,11 +59,8 @@ int main()
 				for (int d = 0; d < 32; ++d) {
 					F_file << F[a][b][c][d] << ";";
 				}
-				F_file << endl;
 			}
-			F_file << endl;
 		}
-		F_file << endl;
 	}
 	F_file.close();
 	xprop_winograd(I, F, Ow, padding);
@@ -75,11 +72,8 @@ int main()
 				for (int d = 0; d < 32; ++d) {
 					Ow_file <<Ow[a][b][c][d]<<";";
 				}
-				Ow_file << endl;
 			}
-			Ow_file << endl;
 		}
-		Ow_file << endl;
 	}
 	Ow_file.close();
 	return 0;

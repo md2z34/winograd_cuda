@@ -6,6 +6,7 @@
 #include "trans_O_2x2_3x3.h"
 #include "image_slice.h"
 #include <fstream>
+#include <iostream>
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -35,6 +36,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 	// Transform Filters
 	std::ofstream Fw_file;
 	std::ofstream Iw_file;
+	std::ofstream slice_file;
 	for (int c = 0; c < C; ++c) {
 		for (int k = 0; k < K; ++k) {
 			// F[c, :, : , k] -> tmp3x3
@@ -59,11 +61,8 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 				for (int d = 0; d < 32; ++d) {
 					Fw_file << Fw[a][b][c][d] << ";";
 				}
-				Fw_file << std::endl;
 			}
-			Fw_file << std::endl;
 		}
-		Fw_file << std::endl;
 	}
 	Fw_file.close();
 
@@ -79,9 +78,9 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 			image_slice(x, X, B, D, padding[1], &start_x, &stop_x, pad_x);
 			// sliceI = I[:, start_y:stop_y, start_x:stop_x, :]
 			for (int c = 0; c < C; ++c) {
-				for (int yy = start_y; yy < MIN(stop_y,Y); ++yy) {
-					for (int xx = start_x; xx < MIN(stop_x,X); ++xx) {
-						for (int n = 0; n < N; ++n) {
+				for (int n = 0; n < N; ++n) {
+					for (int yy = start_y; yy < MIN(stop_y, Y); ++yy) {
+						for (int xx = start_x; xx < MIN(stop_x, X); ++xx) {
 							if ((pad_x[0] > 0) && (pad_y[0] > 0)) {
 								sliceI[c][yy + pad_y[0]][xx + pad_x[0]][n] = I[c][yy][xx][n];
 							}
@@ -101,22 +100,42 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 					}
 				}
 			}
+			slice_file.open("sliceI_cpu.txt");
+			for (int a = 0; a < C; ++a) {
+				for (int b = 0; b < Y; ++b) {
+					for (int c = 0; c < X; ++c) {
+						for (int d = 0; d < N; ++d) {
+							slice_file << sliceI[a][b][c][d] << ";";
+						}
+					}
+				}
+			}
+			slice_file.close();
+
 			// Apply the Image transform
 			for (int c = 0; c < C; ++c) {
 				for (int n = 0; n < N; ++n) {
 					// in = sliceI[c,:,:,n]
+					//std::cout << "sliceI (c="<<c<<";n="<<n<<"):"<<std::endl;
 					for (int yy = 0; yy < Y; ++yy) {
 						for (int xx = 0; xx < X; ++xx) {
 							in[yy][xx] = sliceI[c][yy][xx][n];
+						//	std::cout << in[yy][xx] << "; ";
 						}
+					//	std::cout << std::endl;
 					}
+					//std::cout << std::endl;
 					trans_I_2x2_3x3(out, in);
 					// Iw[:,:,c,y,x,n] = out
+					//std::cout << "Iw:" << std::endl;
 					for (int dx = 0; dx < D; ++dx) {
 						for (int dy = 0; dy < D; ++dy) {
 							Iw[dx][dy][c][y][x][n] = out[dx][dy];
+						//	std::cout << out[dx][dy] << ";";
 						}
+					//	std::cout << std::endl;
 					}
+				//	std::cout << std::endl;
 				} // for n
 			} // for c
 		} // for x
@@ -130,15 +149,10 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 						for (int f = 0; f < N; ++f) {
 							Iw_file << Iw[a][b][c][d][e][f] << ";";
 						}
-						Iw_file << std::endl;
 					}
-					Iw_file << std::endl;
 				}
-				Iw_file << std::endl;
 			}
-			Iw_file << std::endl;
 		}
-		Iw_file << std::endl;
 	}
 	Iw_file.close();
 
