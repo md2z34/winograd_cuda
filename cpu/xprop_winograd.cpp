@@ -40,6 +40,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 #ifdef DEBUG
 	std::ofstream Fw_file;
 	std::ofstream Iw_file;
+	std::ofstream Mw_file;
 	std::ofstream slice_file;
 #endif // DEBUG
 	for (int c = 0; c < C; ++c) {
@@ -189,7 +190,6 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 	float mat1T[K][C];
 	float mat2[C][Yw*Xw*N];
 	float matout[C][Yw*Xw*N];
-	memset(matout, 0, sizeof(float)*C*Yw*Xw*N);
 	for (int s = 0; s < D; ++s) {
 		for (int t = 0; t < D; ++t) {
 			// Fill in mat1T = Fw[D][D][C][K]
@@ -209,6 +209,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 				}
 			}
 			// Matrix multiplication
+			memset(matout, 0, sizeof(float)*C*Yw*Xw*N);
 			for (int k = 0; k < K; ++k) {
 				for (int yxn = 0; yxn < Yw*Xw*N; ++yxn) {
 					for (int c = 0; c < C; ++c) {
@@ -229,9 +230,27 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 
 		} // for t
 	} //for s
+#ifdef DEBUG
+	//Mw[D][D][K][Yw][Xw][N];
+	Mw_file.open("Mw_cpu.txt");
+	for (int a = 0; a < D; ++a) {
+		for (int b = 0; b < D; ++b) {
+			for (int c = 0; c < K; ++c) {
+				for (int d = 0; d < Yw; ++d) {
+					for (int e = 0; e < Xw; ++e) {
+						for (int f = 0; f < N; ++f) {
+							Mw_file << Mw[a][b][c][d][e][f] << ";";
+						}
+					}
+				}
+			}
+		}
+	}
+	Mw_file.close();
+#endif // DEBUG
 
 	// Iterate over the convovled result in the pointwise space and apply inverse transform
-	for (int y = 0; y < Y; ++y) {
+	for (int y = 0; y < Yw; ++y) {
 		int p = y*B;
 		int plen = ((p + 1) < P) ? 2 : 1;
 		for (int x = 0; x < Xw; ++x) {
@@ -250,7 +269,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 					for (int ii = 0; ii < plen; ++ii) {
 						for (int jj = 0; jj < qlen; ++jj) {
 							if (((p + ii) >= 0) && ((p + ii) < 4) && ((q + jj) >= 0) && ((q + jj) < 4)) {
-								O[k][p + ii][q + jj][n] = tmp4x4[ii][jj];
+								O[k][p + ii][q + jj][n] = tmp2x2[ii][jj];
 							}
 						}
 					}

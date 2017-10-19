@@ -402,6 +402,15 @@ def xprop_winograd(I, F, O, padding, minimal=False, backward=False):
         for t in range(D):
             # [K,Yw,Xw,N] = [C,K].T . [C,YwXwN]
             Mw[s,t] = np.dot( Fw[s,t].T, Iw[s,t].reshape(C, -1) ).reshape((K,Yw,Xw,N))
+    file = open('Mw.txt', 'w')
+    for a in range(D):
+        for b in range(D):
+            for c in range(K):
+                for d in range(Yw):
+                    for e in range(Xw):
+                        for f in range(N):
+                            file.write('{};'.format(Mw[a][b][c][d][e][f]))
+    file.close()
 
     # Mw = Mw.astype(np.float32) * scaleF * scaleI
 

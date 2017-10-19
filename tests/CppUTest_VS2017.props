@@ -6,6 +6,7 @@
     <CPPUTEST_FORCED_INCLUDES>$(CPPUTEST_HOME)\include\CppUTest\MemoryLeakDetectorMallocMacros.h</CPPUTEST_FORCED_INCLUDES>
     <CPPUTEST_LIB_PATHS>$(CPPUTEST_HOME)\lib;</CPPUTEST_LIB_PATHS>
     <CPPUTEST_LIB_DEPENDENCIES>CppUTest.lib</CPPUTEST_LIB_DEPENDENCIES>
+    <CPPUTEST_HOME>c:\Users\kipe\source\repos\cpputest\</CPPUTEST_HOME>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup>
