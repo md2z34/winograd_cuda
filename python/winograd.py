@@ -565,20 +565,20 @@ else:
     #F  = np.random.uniform(-1.0, 1.0, dimF)
     E  = np.random.uniform(-1.0, 1.0, dimO)
 
-k=0
-for a in range(dimI[0]):
-    for b in range(dimI[1]):
-        for c in range(dimI[2]):
-            for d in range(dimI[3]):
-                I[a][b][c][d] = k
-                k += 1
-
-for a in range(dimF[0]):
-    for b in range(dimF[1]):
-        for c in range(dimF[2]):
-            for d in range(dimF[3]):
-                F[a][b][c][d] = k
-                k += 1
+# k=0
+# for a in range(dimI[0]):
+#     for b in range(dimI[1]):
+#         for c in range(dimI[2]):
+#             for d in range(dimI[3]):
+#                 I[a][b][c][d] = k
+#                 k += 1
+#
+# for a in range(dimF[0]):
+#     for b in range(dimF[1]):
+#         for c in range(dimF[2]):
+#             for d in range(dimF[3]):
+#                 F[a][b][c][d] = k
+#                 k += 1
 
 Od = np.empty(dimO)
 Ow = np.empty(dimO) #, dtype=np.float32

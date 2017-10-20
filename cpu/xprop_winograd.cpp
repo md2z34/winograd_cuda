@@ -14,28 +14,34 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4][4][32], int padding[2]) {
+void xprop_winograd(FLOAT *I, int lenI, FLOAT *F, int lenF, FLOAT *O, int lenO, int padding[2]) {
 	// I shape
-	const int C=32, Y=4, X=4, N=32;
+	int C=32, Y=4, X=4, N=32;
 	// O shape
-	const int K=32, P=4, Q=4;
+	int K=32, P=4, Q=4;
 
-	const int B = 2;
-	const int D = B + 2;
+	int B = 2;
+	int D = B + 2;
 
-	const int Yw = 2; // ceil_div(P, B);
-	const int Xw = 2; // ceil_div(Q, B);
+	int Yw = ceil_div(P, B);
+	int Xw = ceil_div(Q, B);
 
-	FLOAT Fw[D][D][C][K];
-	FLOAT Iw[D][D][C][Yw][Xw][N];
-	FLOAT Mw[D][D][K][Yw][Xw][N];
+	FLOAT *Fw; // [D][D][C][K];
+	int lenFw = D*D*C*K;
+	FLOAT *Iw; // [D][D][C][Yw][Xw][N];
+	int lenIw = D*D*C*Yw*Xw*N;
+	FLOAT *Mw; // [D][D][K][Yw][Xw][N];
+	int lenMw = D*D*K*Yw*Xw*N;
 
 	FLOAT tmp4x4[4][4];
 	FLOAT tmp3x3[3][3];
 	FLOAT tmp2x2[2][2];
 
-	FLOAT sliceI[C][Y][X][N];
-	memset(O, 0, sizeof(FLOAT) * 32 * 4 * 4 * 32);
+	FLOAT *sliceI; //[C][Y][X][N];
+	int lenSliceI = C*Y*X*N;
+	memset(O, 0, sizeof(FLOAT) * lenO);
+	// FLOAT I[32][4][4][32]; 
+	// FLOAT F[32][3][3][32];
 	// Transform Filters
 #ifdef DEBUG
 	std::ofstream Fw_file;
@@ -43,33 +49,32 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 	std::ofstream Mw_file;
 	std::ofstream slice_file;
 #endif // DEBUG
+	Fw = (FLOAT *)malloc(sizeof(FLOAT)*lenFw);
+	Iw = (FLOAT *)malloc(sizeof(FLOAT)*lenIw);
+	Mw = (FLOAT *)malloc(sizeof(FLOAT)*lenMw);
+	sliceI = (FLOAT *)malloc(sizeof(FLOAT)*lenSliceI);
+
 	for (int c = 0; c < C; ++c) {
 		for (int k = 0; k < K; ++k) {
 			// F[c, :, : , k] -> tmp3x3
 			for (int ii = 0; ii < 3; ++ii) {
 				for (int jj = 0; jj < 3; ++jj) {
-					tmp3x3[ii][jj] = F[c][ii][jj][k];
+					tmp3x3[ii][jj] = F[c*3*3*32 + ii*3*32 + jj*32 + k];
 				}
 			}
 			trans_F_2x2_3x3(tmp4x4, tmp3x3);
 			// tmp4x4 -> Fw[:,:,c,k]
 			for (int ii = 0; ii < 4; ++ii) {
 				for (int jj = 0; jj < 4; ++jj) {
-					Fw[ii][jj][c][k] = tmp4x4[ii][jj];
+					Fw[ii*D*C*K + jj*C*K + c*K + k] = tmp4x4[ii][jj];
 				}
 			}
 		}
 	}
 #ifdef DEBUG
 	Fw_file.open("Fw_cpu.txt");
-	for (int a = 0; a < 4; ++a) {
-		for (int b = 0; b < 4; ++b) {
-			for (int c = 0; c < 32; ++c) {
-				for (int d = 0; d < 32; ++d) {
-					Fw_file << Fw[a][b][c][d] << ";";
-				}
-			}
-		}
+	for (int a = 0; a < lenFw; ++a) {
+		Fw_file << Fw[a] << ";";
 	}
 	Fw_file.close();
 #endif // DEBUG
@@ -89,19 +94,19 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 					for (int yy = start_y; yy < MIN(stop_y, Y); ++yy) {
 						for (int xx = start_x; xx < MIN(stop_x, X); ++xx) {
 							if ((pad_x[0] > 0) && (pad_y[0] > 0)) {
-								sliceI[c][yy + pad_y[0]][xx + pad_x[0]][n] = I[c][yy][xx][n];
+								sliceI[c*Y*X*N + (yy + pad_y[0])*X*N + (xx + pad_x[0])*N + n] = I[c * 4 * 4 * 32 + yy * 4 * 32 + xx * 32 + n];
 							}
 							else if ((pad_x[1] > 0) && (pad_y[0] > 0)) {
-								sliceI[c][yy + pad_y[0]][xx - pad_x[1]][n] = I[c][yy][xx][n];
+								sliceI[c*Y*X*N + (yy + pad_y[0])*X*N + (xx - pad_x[1])*N + n] = I[c * 4 * 4 * 32 + yy * 4 * 32 + xx * 32 + n];
 							}
 							else if ((pad_x[0] > 0) && (pad_y[1] > 0)) {
-								sliceI[c][yy - pad_y[1]][xx + pad_x[0]][n] = I[c][yy][xx][n];
+								sliceI[c*Y*X*N + (yy - pad_y[1])*X*N + (xx + pad_x[0])*N + n] = I[c * 4 * 4 * 32 + yy * 4 * 32 + xx * 32 + n];
 							}
 							else if ((pad_x[1] > 0) && (pad_y[1] > 0)) {
-								sliceI[c][yy - pad_y[1]][xx - pad_x[1]][n] = I[c][yy][xx][n];
+								sliceI[c*Y*X*N + (yy - pad_y[1])*X*N + (xx - pad_x[1])*N + n] = I[c * 4 * 4 * 32 + yy * 4 * 32 + xx * 32 + n];
 							}
 							else {
-								sliceI[c][yy][xx][n] = I[c][yy][xx][n];
+								sliceI[c*Y*X*N + (yy)*X*N + (xx)*N + n] = I[c * 4 * 4 * 32 + yy * 4 * 32 + xx * 32 + n];
 							}
 						}
 					}
@@ -109,14 +114,8 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 			}
 #ifdef DEBUG
 			slice_file.open("sliceI_cpu.txt");
-			for (int a = 0; a < C; ++a) {
-				for (int b = 0; b < Y; ++b) {
-					for (int c = 0; c < X; ++c) {
-						for (int d = 0; d < N; ++d) {
-							slice_file << sliceI[a][b][c][d] << ";";
-						}
-					}
-				}
+			for (int a = 0; a < lenSliceI; ++a) {
+				slice_file << sliceI[a] << ";";
 			}
 			slice_file.close();
 
@@ -131,7 +130,7 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 #endif // DEBUG
 					for (int yy = 0; yy < Y; ++yy) {
 						for (int xx = 0; xx < X; ++xx) {
-							in[yy][xx] = sliceI[c][yy][xx][n];
+							in[yy][xx] = sliceI[c*Y*X*N + (yy)*X*N + (xx)*N + n];
 #ifdef DEBUG
 							slice_file << in[yy][xx] << "; ";
 #endif // DEBUG
@@ -148,7 +147,7 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 					// std::cout << "Iw:" << std::endl;
 					for (int dx = 0; dx < D; ++dx) {
 						for (int dy = 0; dy < D; ++dy) {
-							Iw[dx][dy][c][y][x][n] = out[dx][dy];
+							Iw[dx*D*C*Yw*Xw*N + dy*C*Yw*Xw*N + c*Yw*Xw*N + y*Xw*N + x*N + n] = out[dx][dy];
 #ifdef DEBUG
 							//	std::cout << out[dx][dy] << ";";
 #endif // DEBUG
@@ -169,33 +168,31 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 	} // for y
 #ifdef DEBUG
 	Iw_file.open("Iw_cpu.txt");
-	for (int a = 0; a < D; ++a) {
-		for (int b = 0; b < D; ++b) {
-			for (int c = 0; c < C; ++c) {
-				for (int d = 0; d < Yw; ++d) {
-					for (int e = 0; e < Xw; ++e) {
-						for (int f = 0; f < N; ++f) {
-							Iw_file << Iw[a][b][c][d][e][f] << ";";
-						}
-					}
-				}
-			}
-		}
+	for (int a = 0; a < lenIw; ++a) {
+		Iw_file << Iw[a] << ";";
 	}
 	Iw_file.close();
 #endif // DEBUG
 
 	// Batched gemm for the pointwise multiplication step
 	
-	FLOAT mat1T[K][C];
-	FLOAT mat2[C][Yw*Xw*N];
-	FLOAT matout[C][Yw*Xw*N];
+	FLOAT *mat1T; // [K][C];
+	int lenMat1T = K*C;
+	FLOAT *mat2; //[C][Yw*Xw*N];
+	int lenMat2 = C*Yw*Xw*N;
+	FLOAT *matout; //[C][Yw*Xw*N];
+	int lenMatout = C*Yw*Xw*N;
+
+	mat1T = (FLOAT *)malloc(sizeof(FLOAT)*lenMat1T);
+	mat2 = (FLOAT *)malloc(sizeof(FLOAT)*lenMat2);
+	matout = (FLOAT *)malloc(sizeof(FLOAT)*lenMatout);
+
 	for (int s = 0; s < D; ++s) {
 		for (int t = 0; t < D; ++t) {
 			// Fill in mat1T = Fw[D][D][C][K]
 			for (int c = 0; c < C; ++c) {
 				for (int k = 0; k < C; ++k) {
-					mat1T[k][c] = Fw[s][t][c][k];
+					mat1T[k*C + c] = Fw[s*D*C*K + t*C*K + c*K + k];
 				}
 			}
 			// Fill in mat2 = Iw[D][D][C][Yw][Xw][N]
@@ -203,7 +200,7 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 				for (int yw = 0; yw < Yw; ++yw) {
 					for (int xw = 0; xw < Xw; ++xw) {
 						for (int n = 0; n < N; ++n) {
-							mat2[c][yw*Xw*N + xw*N + n] = Iw[s][t][c][yw][xw][n];
+							mat2[c*Yw*Xw*N + yw*Xw*N + xw*N + n] = Iw[s*D*C*Yw*Xw*N + t*C*Yw*Xw*N + c*Yw*Xw*N + yw*Xw*N + xw*N + n];
 						}
 					}
 				}
@@ -213,7 +210,7 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 			for (int k = 0; k < K; ++k) {
 				for (int yxn = 0; yxn < Yw*Xw*N; ++yxn) {
 					for (int c = 0; c < C; ++c) {
-						matout[k][yxn] += mat1T[k][c] * mat2[c][yxn];
+						matout[k*Yw*Xw*N + yxn] += mat1T[k*C + c] * mat2[c*Yw*Xw*N + yxn];
 					}
 				}
 			}
@@ -222,7 +219,7 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 				for (int yw = 0; yw < Yw; ++yw) {
 					for (int xw = 0; xw < Xw; ++xw) {
 						for (int n = 0; n < N; ++n) {
-							Mw[s][t][k][yw][xw][n] = matout[k][yw*Xw*N + xw*N + n];
+							Mw[s*D*K*Yw*Xw*N + t*K*Yw*Xw*N + k*Yw*Xw*N + yw*Xw*N + xw*N + n] = matout[k*Yw*Xw*N + yw*Xw*N + xw*N + n];
 						}
 					}
 				}
@@ -233,18 +230,8 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 #ifdef DEBUG
 	//Mw[D][D][K][Yw][Xw][N];
 	Mw_file.open("Mw_cpu.txt");
-	for (int a = 0; a < D; ++a) {
-		for (int b = 0; b < D; ++b) {
-			for (int c = 0; c < K; ++c) {
-				for (int d = 0; d < Yw; ++d) {
-					for (int e = 0; e < Xw; ++e) {
-						for (int f = 0; f < N; ++f) {
-							Mw_file << Mw[a][b][c][d][e][f] << ";";
-						}
-					}
-				}
-			}
-		}
+	for (int a = 0; a < lenMw; ++a) {
+		Mw_file << Mw[a] << ";";
 	}
 	Mw_file.close();
 #endif // DEBUG
@@ -261,7 +248,7 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 					// Mw[:, : , k, y, x, n] -> tmp4x4
 					for (int ii = 0; ii < D; ++ii) {
 						for (int jj = 0; jj < D; ++jj) {
-							tmp4x4[ii][jj] = Mw[ii][jj][k][y][x][n];
+							tmp4x4[ii][jj] = Mw[ii*D*K*Yw*Xw*N + jj*K*Yw*Xw*N + k*Yw*Xw*N + y*Xw*N + x*N + n];
 						}
 					}
 					trans_O_2x2_3x3(tmp2x2,tmp4x4);
@@ -269,7 +256,7 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 					for (int ii = 0; ii < plen; ++ii) {
 						for (int jj = 0; jj < qlen; ++jj) {
 							if (((p + ii) >= 0) && ((p + ii) < 4) && ((q + jj) >= 0) && ((q + jj) < 4)) {
-								O[k][p + ii][q + jj][n] = tmp2x2[ii][jj];
+								O[k*4*4*32 + (p + ii)*4*32 + (q + jj)*32 + n] = tmp2x2[ii][jj];
 							}
 						}
 					}
@@ -277,4 +264,11 @@ void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4]
 			}
 		}
 	}
+	free(mat1T);
+	free(mat2);
+	free(matout);
+	free(Fw);
+	free(Iw);
+	free(Mw);
+	free(sliceI);
 }
