@@ -17,17 +17,6 @@
 
 using namespace std;
 
-inline int mat2vec_idx(int row, int col, int row_n)
-{
-	return (row*row_n + col);
-}
-
-inline void vec2mat_idx(int N, int row_n, int *row, int *col)
-{
-	*row = N / row_n;
-	*col = N % row_n;
-}
-
 int main()
 {
 	FLOAT *I; //[32][4][4][32]; 
@@ -43,8 +32,18 @@ int main()
 #endif // DEBUG
 	// Init input values
 	I = (FLOAT *)malloc(sizeof(FLOAT)*lenI);
+	if (NULL == I) {
+		return (-1);
+	}
 	F = (FLOAT *)malloc(sizeof(FLOAT)*lenF);
+	if (NULL == F) {
+		return (-1);
+	}
 	Ow = (FLOAT *)malloc(sizeof(FLOAT)*lenOw);
+	if (NULL == Ow) {
+		return (-1);
+	}
+
 	padding[0] = 1; padding[1] = 1;
 	int k = 0;
 	for (int a = 0; a < lenI; ++a) {

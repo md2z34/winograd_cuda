@@ -50,9 +50,21 @@ void xprop_winograd(FLOAT *I, int lenI, FLOAT *F, int lenF, FLOAT *O, int lenO, 
 	std::ofstream slice_file;
 #endif // DEBUG
 	Fw = (FLOAT *)malloc(sizeof(FLOAT)*lenFw);
+	if (NULL == Fw) {
+		exit(-1);
+	}
 	Iw = (FLOAT *)malloc(sizeof(FLOAT)*lenIw);
+	if (NULL == Iw) {
+		exit(-1);
+	}
 	Mw = (FLOAT *)malloc(sizeof(FLOAT)*lenMw);
+	if (NULL == Mw) {
+		exit(-1);
+	}
 	sliceI = (FLOAT *)malloc(sizeof(FLOAT)*lenSliceI);
+	if (NULL == sliceI) {
+		exit(-1);
+	}
 
 	for (int c = 0; c < C; ++c) {
 		for (int k = 0; k < K; ++k) {
@@ -184,8 +196,17 @@ void xprop_winograd(FLOAT *I, int lenI, FLOAT *F, int lenF, FLOAT *O, int lenO, 
 	int lenMatout = C*Yw*Xw*N;
 
 	mat1T = (FLOAT *)malloc(sizeof(FLOAT)*lenMat1T);
+	if (NULL == mat1T) {
+		exit(-1);
+	}
 	mat2 = (FLOAT *)malloc(sizeof(FLOAT)*lenMat2);
+	if (NULL == mat2) {
+		exit(-1);
+	}
 	matout = (FLOAT *)malloc(sizeof(FLOAT)*lenMatout);
+	if (NULL == matout) {
+		exit(-1);
+	}
 
 	for (int s = 0; s < D; ++s) {
 		for (int t = 0; t < D; ++t) {
