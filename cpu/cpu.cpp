@@ -29,9 +29,9 @@ inline void vec2mat_idx(int N, int row_n, int *row, int *col)
 
 int main()
 {
-	float I[32][4][4][32]; 
-	float F[32][3][3][32];
-	float Ow[32][4][4][32];
+	FLOAT I[32][4][4][32]; 
+	FLOAT F[32][3][3][32];
+	FLOAT Ow[32][4][4][32];
 	int padding[2];
 #ifdef DEBUG
 	ofstream Ow_file;
@@ -39,11 +39,12 @@ int main()
 #endif // DEBUG
 	// Init input values
 	padding[0] = 1; padding[1] = 1;
+	int k = 0;
 	for (int a = 0; a < 32; ++a) {
 		for (int b = 0; b < 4; ++b) {
 			for (int c = 0; c < 4; ++c) {
 				for (int d = 0; d < 32; ++d) {
-					I[a][b][c][d] = 1.0f;
+					I[a][b][c][d] = k++;
 				}
 			}
 		}
@@ -52,7 +53,7 @@ int main()
 		for (int b = 0; b < 3; ++b) {
 			for (int c = 0; c < 3; ++c) {
 				for (int d = 0; d < 32; ++d) {
-					F[a][b][c][d] = 1.0f;
+					F[a][b][c][d] = k++;
 				}
 			}
 		}
@@ -78,7 +79,7 @@ int main()
 		for (int b = 0; b < 4; ++b) {
 			for (int c = 0; c < 4; ++c) {
 				for (int d = 0; d < 32; ++d) {
-					Ow_file <<Ow[a][b][c][d]<<";";
+					Ow_file << std::fixed << Ow[a][b][c][d]<<";";
 				}
 			}
 		}

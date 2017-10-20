@@ -14,7 +14,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4][4][32], int padding[2]) {
+void xprop_winograd(FLOAT I[32][4][4][32], FLOAT F[32][3][3][32], FLOAT O[32][4][4][32], int padding[2]) {
 	// I shape
 	const int C=32, Y=4, X=4, N=32;
 	// O shape
@@ -26,16 +26,16 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 	const int Yw = 2; // ceil_div(P, B);
 	const int Xw = 2; // ceil_div(Q, B);
 
-	float Fw[D][D][C][K];
-	float Iw[D][D][C][Yw][Xw][N];
-	float Mw[D][D][K][Yw][Xw][N];
+	FLOAT Fw[D][D][C][K];
+	FLOAT Iw[D][D][C][Yw][Xw][N];
+	FLOAT Mw[D][D][K][Yw][Xw][N];
 
-	float tmp4x4[4][4];
-	float tmp3x3[3][3];
-	float tmp2x2[2][2];
+	FLOAT tmp4x4[4][4];
+	FLOAT tmp3x3[3][3];
+	FLOAT tmp2x2[2][2];
 
-	float sliceI[C][Y][X][N];
-	memset(O, 0, sizeof(float) * 32 * 4 * 4 * 32);
+	FLOAT sliceI[C][Y][X][N];
+	memset(O, 0, sizeof(FLOAT) * 32 * 4 * 4 * 32);
 	// Transform Filters
 #ifdef DEBUG
 	std::ofstream Fw_file;
@@ -74,8 +74,8 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 	Fw_file.close();
 #endif // DEBUG
 	// Iterate over image transform dimensions and slice out tiles of the image
-	float in[4][4];
-	float out[4][4];
+	FLOAT in[4][4];
+	FLOAT out[4][4];
 	for (int y = 0; y < Yw; ++y) {
 		int start_y, stop_y, pad_y[2];
 		image_slice(y, Y, B, D, padding[0], &start_y, &stop_y, pad_y);
@@ -83,7 +83,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 			int start_x, stop_x, pad_x[2];
 			image_slice(x, X, B, D, padding[1], &start_x, &stop_x, pad_x);
 			// sliceI = I[:, start_y:stop_y, start_x:stop_x, :]
-			memset(sliceI, 0, sizeof(float)*C*Y*X*N);
+			memset(sliceI, 0, sizeof(FLOAT)*C*Y*X*N);
 			for (int c = 0; c < C; ++c) {
 				for (int n = 0; n < N; ++n) {
 					for (int yy = start_y; yy < MIN(stop_y, Y); ++yy) {
@@ -187,9 +187,9 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 
 	// Batched gemm for the pointwise multiplication step
 	
-	float mat1T[K][C];
-	float mat2[C][Yw*Xw*N];
-	float matout[C][Yw*Xw*N];
+	FLOAT mat1T[K][C];
+	FLOAT mat2[C][Yw*Xw*N];
+	FLOAT matout[C][Yw*Xw*N];
 	for (int s = 0; s < D; ++s) {
 		for (int t = 0; t < D; ++t) {
 			// Fill in mat1T = Fw[D][D][C][K]
@@ -209,7 +209,7 @@ void xprop_winograd(float I[32][4][4][32], float F[32][3][3][32], float O[32][4]
 				}
 			}
 			// Matrix multiplication
-			memset(matout, 0, sizeof(float)*C*Yw*Xw*N);
+			memset(matout, 0, sizeof(FLOAT)*C*Yw*Xw*N);
 			for (int k = 0; k < K; ++k) {
 				for (int yxn = 0; yxn < Yw*Xw*N; ++yxn) {
 					for (int c = 0; c < C; ++c) {

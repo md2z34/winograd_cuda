@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "trans_F_2x2_3x3.h"
+#include "winograd_debug.h"
 
-void trans_F_2x2_3x3(float Fw[4][4], float F[3][3])
+void trans_F_2x2_3x3(FLOAT Fw[4][4], FLOAT F[3][3])
 {
 	// Minimal version only
-	float T0[4][3];
+	FLOAT T0[4][3];
 	for (int ii = 0; ii < 3; ++ii) {
 		T0[0][ii] = F[0][ii];
 		T0[1][ii] = (F[0][ii] + F[2][ii] + F[1][ii]) * 0.5f;
